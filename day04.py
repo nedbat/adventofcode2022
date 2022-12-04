@@ -20,6 +20,8 @@ class Range:
     def fully_contains(self, other):
         return self.low <= other.low and self.high >= other.high
 
+    def overlaps(self, other):
+        return self.high >= other.low and other.high >= self.low
 
 def range_pairs(lines):
     for line in lines:
@@ -42,3 +44,18 @@ def test_part1():
 if __name__ == "__main__":
     data = open("day04_input.txt").read().splitlines()
     print(f"Part 1: {part1(data)}")
+
+
+def part2(lines):
+    overlaps = 0
+    for r1, r2 in range_pairs(lines):
+        if r1.overlaps(r2):
+            overlaps += 1
+    return overlaps
+
+def test_part2():
+    assert part2(SAMPLE) == 4
+
+if __name__ == "__main__":
+    data = open("day04_input.txt").read().splitlines()
+    print(f"Part 2: {part2(data)}")
