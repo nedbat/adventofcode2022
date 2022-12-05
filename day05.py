@@ -70,3 +70,26 @@ def test_part1():
 if __name__ == "__main__":
     lines = open("day05_input.txt").read().splitlines()
     print(f"Part 1: {part1(lines)}")
+
+
+def move_crates2(crates, moves):
+    for num, src, dst in moves:
+        crates[dst-1].extend(crates[src-1][-num:])
+        del crates[src-1][-num:]
+
+def test_move_crates2():
+    crates, moves = read_input(SAMPLE)
+    move_crates2(crates, moves)
+    assert crates == [["M"], ["C"], ["P", "Z", "N", "D"]]
+
+def part2(lines):
+    crates, moves = read_input(lines)
+    move_crates2(crates, moves)
+    return "".join(stack[-1] for stack in crates)
+
+def test_part2():
+    assert part2(SAMPLE) == "MCD"
+
+if __name__ == "__main__":
+    lines = open("day05_input.txt").read().splitlines()
+    print(f"Part 2: {part2(lines)}")
