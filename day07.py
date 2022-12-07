@@ -127,3 +127,24 @@ def test_part1():
 if __name__ == "__main__":
     lines = open("day07_input.txt").read().splitlines()
     print(f"Part 1: {part1(lines)}")
+
+def find_dir_to_delete(filesys, total=70000000, need=30000000):
+    used = filesys.total_size()
+    unused = total - used
+    need_to_find = need - unused
+    candidates = []
+    for _, subdir in filesys.walk_dirs():
+        sub_total = subdir.total_size()
+        if sub_total > need_to_find:
+            candidates.append(sub_total)
+    return min(candidates)
+
+def part2(lines):
+    return find_dir_to_delete(read_terminal_output(lines))
+
+def test_part2():
+    assert part2(SAMPLE) == 24933642
+
+if __name__ == "__main__":
+    lines = open("day07_input.txt").read().splitlines()
+    print(f"Part 2: {part2(lines)}")
