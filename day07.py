@@ -85,7 +85,7 @@ def read_terminal_output(lines):
     cwd = root
     for line in lines:
         match m := RegexMatcher(line):
-            case r"\$ cd ..":
+            case r"\$ cd \.\.":
                 cwd = cwd.parent
             case r"\$ cd /":
                 cwd = root
