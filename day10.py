@@ -182,3 +182,32 @@ def test_part1():
 if __name__ == "__main__":
     lines = open("day10_input.txt").read().splitlines()
     print(f"Part 1: {part1(lines)}")
+
+
+def crt(lines):
+    signal = iter(run(lines))
+    for row in range(6):
+        crt_row = ""
+        for pixel_x in range(40):
+            _, x = next(signal)
+            if abs(x - pixel_x) <= 1:
+                crt_row += "#"
+            else:
+                crt_row += "."
+        yield crt_row
+
+def test_crt():
+    assert list(crt(SAMPLE)) == [
+        "##..##..##..##..##..##..##..##..##..##..",
+        "###...###...###...###...###...###...###.",
+        "####....####....####....####....####....",
+        "#####.....#####.....#####.....#####.....",
+        "######......######......######......####",
+        "#######.......#######.......#######.....",
+    ]
+
+if __name__ == "__main__":
+    lines = open("day10_input.txt").read().splitlines()
+    print("Part 2:")
+    for crt_row in crt(lines):
+        print(crt_row)
