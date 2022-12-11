@@ -71,19 +71,19 @@ class Monkey:
 
     def turn(self, monkeys, msg, part=1, global_mod=0):
         for item in self.items:
-            msg(f"Inspects {item}")
+            #msg(f"Inspects {item}")
             self.items_inspected += 1
             item = self.op(item)
-            msg(f" Worry goes to {item}")
+            #msg(f" Worry goes to {item}")
             if part == 1:
                 item //= 3
-                msg(f" Divided by 3 to {item}")
+                #msg(f" Divided by 3 to {item}")
             else:
                 item %= global_mod
             tf = (item % self.divisor == 0)
-            msg(f" Divisible by {self.divisor}? {tf}")
+            #msg(f" Divisible by {self.divisor}? {tf}")
             goes_to = self.true_to if tf else self.false_to
-            msg(f" Throw to {goes_to}")
+            #msg(f" Throw to {goes_to}")
             monkeys[goes_to].items.append(item)
         self.items = []
 
@@ -112,9 +112,9 @@ class Monkeys:
         if msg is None:
             msg = lambda text: None
         for i, monkey in enumerate(self.monkeys):
-            msg(f"Monkey {i}")
+            #msg(f"Monkey {i}")
             monkey.turn(self, msg, part=part, global_mod=self.global_mod)
-            msg(f"")
+            #msg(f"")
 
     def all_items(self):
         return [m.items for m in self.monkeys]
