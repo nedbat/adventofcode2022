@@ -69,14 +69,17 @@ class Monkey:
                 monkey.false_to = int(line.split()[-1])
         return monkey
 
-    def turn(self, monkeys, msg):
+    def turn(self, monkeys, msg, part=1, global_mod=0):
         for item in self.items:
             msg(f"Inspects {item}")
             self.items_inspected += 1
             item = self.op(item)
             msg(f" Worry goes to {item}")
-            item //= 3
-            msg(f" Divided by 3 to {item}")
+            if part == 1:
+                item //= 3
+                msg(f" Divided by 3 to {item}")
+            else:
+                item %= global_mod
             tf = (item % self.divisor == 0)
             msg(f" Divisible by {self.divisor}? {tf}")
             goes_to = self.true_to if tf else self.false_to
@@ -88,12 +91,15 @@ class Monkey:
 @dataclass
 class Monkeys:
     monkeys: list[Monkey] = field(default_factory=list)
+    global_mod: int = 1
 
     @classmethod
     def from_text(cls, text):
         monkeys = cls()
         for chunk in text.split("\n\n"):
             monkeys.monkeys.append(Monkey.from_text(chunk))
+        for monkey in monkeys.monkeys:
+            monkeys.global_mod *= monkey.divisor
         return monkeys
 
     def __len__(self):
@@ -102,12 +108,12 @@ class Monkeys:
     def __getitem__(self, n):
         return self.monkeys[n]
 
-    def round(self, msg=None):
+    def round(self, msg=None, part=1):
         if msg is None:
             msg = lambda text: None
         for i, monkey in enumerate(self.monkeys):
             msg(f"Monkey {i}")
-            monkey.turn(self, msg)
+            monkey.turn(self, msg, part=part, global_mod=self.global_mod)
             msg(f"")
 
     def all_items(self):
@@ -146,3 +152,18 @@ def test_part1():
 if __name__ == "__main__":
     text = open("day11_input.txt").read()
     print(f"Part 1: {part1(text)}")
+
+
+def part2(text):
+    monkeys = Monkeys.from_text(text)
+    for _ in range(10000):
+        monkeys.round(part=2)
+    by_activty = sorted(monkeys.monkeys, key=lambda m: m.items_inspected)
+    return by_activty[-1].items_inspected * by_activty[-2].items_inspected
+
+def test_part2():
+    assert part2(SAMPLE) == 2713310158
+
+if __name__ == "__main__":
+    text = open("day11_input.txt").read()
+    print(f"Part 2: {part2(text)}")
