@@ -90,6 +90,9 @@ class OnceEvery:
         return ret
 
 
+class NoSolution(Exception):
+    """Raised if there is no solution."""
+
 class AStar:
     def __init__(self):
         self.candidates = PriorityQueue()
@@ -116,7 +119,7 @@ class AStar:
                 try:
                     best = self.candidates.pop()
                 except IndexError:
-                    raise Exception("No solution") from None
+                    raise NoSolution("No solution") from None
                 cost = self.costs[best]
                 if debug:
                     print(f"Best now is {best.summary()}, cost = {cost}")

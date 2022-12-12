@@ -46,6 +46,11 @@ class Map:
                 map.map[Point(x, y)] = ord(ch)
         return map
 
+    def starts(self):
+        for pt, height in self.map.items():
+            if height == ord("a"):
+                yield pt
+
 
 def test_parsing():
     map = Map.from_text(SAMPLE)
@@ -60,8 +65,8 @@ class ClimbState(astar.State):
         self.pt = pt
 
     @classmethod
-    def first(cls, map):
-        return cls(map, map.start)
+    def first(cls, map, start):
+        return cls(map, start)
 
     def __hash__(self):
         return hash(self.pt)
@@ -85,7 +90,7 @@ class ClimbState(astar.State):
 
 def part1(text):
     map = Map.from_text(text)
-    best, cost = astar.search(ClimbState.first(map))
+    _, cost = astar.search(ClimbState.first(map, map.start))
     return cost
 
 def test_part1():
@@ -94,3 +99,23 @@ def test_part1():
 if __name__ == "__main__":
     text = open("day12_input.txt").read()
     print(f"Part 1: {part1(text)}")
+
+
+def part2(text):
+    map = Map.from_text(text)
+    costs = []
+    for start_pt in map.starts():
+        try:
+            _, cost = astar.search(ClimbState.first(map, start_pt))
+        except astar.NoSolution:
+            pass
+        else:
+            costs.append(cost)
+    return min(costs)
+
+def test_part2():
+    assert part2(SAMPLE) == 29
+
+if __name__ == "__main__":
+    text = open("day12_input.txt").read()
+    print(f"Part 2: {part2(text)}")
