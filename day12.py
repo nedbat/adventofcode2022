@@ -116,6 +116,50 @@ def part2(text):
 def test_part2():
     assert part2(SAMPLE) == 29
 
+# if __name__ == "__main__":
+#     text = open("day12_input.txt").read()
+#     print(f"Part 2: {part2(text)}")
+
+# That part 2 was a bit slow, let's try another approach.
+
+class ReverseClimbState(astar.State):
+    """Search from the end to any start point."""
+    def __init__(self, map, pt):
+        self.map = map
+        self.pt = pt
+
+    @classmethod
+    def first(cls, map, end):
+        return cls(map, end)
+
+    def __hash__(self):
+        return hash(self.pt)
+
+    def __eq__(self, other):
+        return self.pt == other.pt
+
+    def is_goal(self):
+        return self.map.map[self.pt] == ord("a")
+
+    def next_states(self, cost):
+        my_height = self.map.map[self.pt]
+        for npt in self.pt.neighbors():
+            dest_height = self.map.map.get(npt)
+            if dest_height is not None:
+                if dest_height - my_height >= -1:
+                    yield ReverseClimbState(self.map, npt), cost + 1
+
+    def guess_completion_cost(self):
+        return 0
+
+def part2b(text):
+    map = Map.from_text(text)
+    _, cost = astar.search(ReverseClimbState.first(map, map.goal))
+    return cost
+
+def test_part2b():
+    assert part2b(SAMPLE) == 29
+
 if __name__ == "__main__":
     text = open("day12_input.txt").read()
-    print(f"Part 2: {part2(text)}")
+    print(f"Part 2: {part2b(text)}")
