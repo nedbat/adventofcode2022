@@ -102,6 +102,7 @@ if __name__ == "__main__":
 
 
 def part2(text):
+    """Do a complete search from each possible starting point."""
     map = Map.from_text(text)
     costs = []
     for start_pt in map.starts():
@@ -153,6 +154,7 @@ class ReverseClimbState(astar.State):
         return 0
 
 def part2b(text):
+    """Search from the end back to the beginning."""
     map = Map.from_text(text)
     _, cost = astar.search(ReverseClimbState.first(map, map.goal))
     return cost
@@ -163,3 +165,18 @@ def test_part2b():
 if __name__ == "__main__":
     text = open("day12_input.txt").read()
     print(f"Part 2: {part2b(text)}")
+
+
+def part2c(text):
+    """Search with many initial candidates."""
+    map = Map.from_text(text)
+    starts_states = [ClimbState.first(map, start_pt) for start_pt in map.starts()]
+    _, cost = astar.search_many(starts_states)
+    return cost
+
+def test_part2c():
+    assert part2c(SAMPLE) == 29
+
+if __name__ == "__main__":
+    text = open("day12_input.txt").read()
+    print(f"Part 2: {part2c(text)}")

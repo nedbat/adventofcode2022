@@ -107,13 +107,19 @@ class AStar:
         self.candidates.add(state, cost + guess)
 
     def search(self, start_state, log=0, debug=False):
+        return self.search_many([start_state], log, debug)
+
+    def search_many(self, start_states, log=0, debug=False):
         inf = float('inf')
         if log:
             should_log = OnceEvery(seconds=log)
         else:
             should_log = None
-        self.add_candidate(start_state, 0)
-        self.came_from[start_state] = None
+
+        for start_state in start_states:
+            self.add_candidate(start_state, 0)
+            self.came_from[start_state] = None
+
         try:
             while True:
                 try:
@@ -143,3 +149,7 @@ class AStar:
 def search(*args, **kwargs):
     """Search a state space, starting with `start_state`. Returns the final state and cost to reach the goal."""
     return AStar().search(*args, **kwargs)
+
+def search_many(*args, **kwargs):
+    """Search a state space, starting with `start_state`. Returns the final state and cost to reach the goal."""
+    return AStar().search_many(*args, **kwargs)
