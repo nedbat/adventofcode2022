@@ -1,6 +1,7 @@
 # https://adventofcode.com/2022/day/13
 
 import ast
+import functools
 import itertools
 
 SAMPLE = """\
@@ -78,3 +79,22 @@ def test_part1():
 if __name__ == "__main__":
     text = open("day13_input.txt").read()
     print(f"Part 1: {part1(text)}")
+
+DIV1 = [[2]]
+DIV2 = [[6]]
+
+def part2(text):
+    pairs = read_pairs(text)
+    packets = list(itertools.chain.from_iterable(pairs))
+    packets.extend([DIV1, DIV2])
+    packets.sort(key=functools.cmp_to_key(compare))
+    i1 = packets.index(DIV1) + 1
+    i2 = packets.index(DIV2) + 1
+    return i1 * i2
+
+def test_part2():
+    assert part2(SAMPLE) == 140
+
+if __name__ == "__main__":
+    text = open("day13_input.txt").read()
+    print(f"Part 2: {part2(text)}")
