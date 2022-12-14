@@ -52,7 +52,6 @@ def bounds(cave):
 
 def print_cave(cave):
     minx, miny, maxx, maxy = bounds(cave)
-    print(minx, maxx, miny, maxy)
     for y in from_to(miny, maxy):
         for x in from_to(minx, maxx):
             print(cave.get((x, y), "."), end="")
@@ -64,7 +63,7 @@ def next_pts(x, y):
     yield (x - 1, y + 1)
     yield (x + 1, y + 1)
 
-def drop_sand(cave, sx, sy):
+def drop_sand_part1(cave, sx, sy):
     bottom = max(pt[1] for pt in cave.keys())
     while True:
         if sy >= bottom:
@@ -76,18 +75,18 @@ def drop_sand(cave, sx, sy):
         else:
             return sx, sy
 
-def pour_sand(cave):
+def pour_sand(cave, drop_sand):
     num = 0
     while (spt := drop_sand(cave, 500, 0)):
         cave[spt] = "o"
         num += 1
-        # print("=" * 80)
+        # print("=" * 8)
         # print_cave(cave)
         # import time; time.sleep(.25)
     return num
 
 def part1(text):
-    return pour_sand(read_cave(text))
+    return pour_sand(read_cave(text), drop_sand=drop_sand_part1)
 
 def test_part1():
     assert part1(SAMPLE) == 24
@@ -95,3 +94,28 @@ def test_part1():
 if __name__ == "__main__":
     text = open("day14_input.txt").read()
     print(f"Part 1: {part1(text)}")
+
+
+def drop_sand_part2(cave, sx, sy):
+    bottom = max(pt[1] for pt in cave.keys() if cave.get(pt) == "#")
+    while True:
+        for nsx, nsy in next_pts(sx, sy):
+            if nsy == bottom + 2:
+                continue
+            if cave.get((nsx, nsy)) is None:
+                sx, sy = nsx, nsy
+                break
+        else:
+            if sy == 0:
+                return None
+            return sx, sy
+
+def part2(text):
+    return pour_sand(read_cave(text), drop_sand=drop_sand_part2) + 1
+
+def test_part2():
+    assert part2(SAMPLE) == 93
+
+if __name__ == "__main__":
+    text = open("day14_input.txt").read()
+    print(f"Part 2: {part2(text)}")
