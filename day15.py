@@ -99,8 +99,8 @@ def covered_positions(sensor_data, row_num):
     for sx, sy, bx, by in sensor_data:
         radius = abs(sx - bx) + abs(sy - by)
         row_rad = radius - abs(sy - row_num)
-        row_covered = range(sx - row_rad, sx + row_rad + 1)
         if row_rad >= 0:
+            row_covered = range(sx - row_rad, sx + row_rad + 1)
             covered |= row_covered
     return covered
 
@@ -125,8 +125,8 @@ def only_possible(text, size):
     data = read_data(text)
     for row_num in range(size):
         covered = covered_positions(data, row_num)
-        covered &= range(size)
         if len(covered.ranges) > 1:
+            covered &= range(size)
             return next(r.stop for r in covered.ranges if r.start == 0), row_num
 
 def test_only_possible():
@@ -142,3 +142,7 @@ def test_part2():
 if __name__ == "__main__":
     text = open("day15_input.txt").read()
     print(f"Part 2: {part2(text, 4_000_000)}")
+
+# Now 46s. I think a shortcut would be to examine the overlaps among diamonds,
+# since the blank space must be at one of those intersections. But that seems
+# like a lot of work..  :)
