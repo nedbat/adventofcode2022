@@ -28,7 +28,8 @@ def read_data(text):
         for line in text.splitlines()
     ]
 
-def combine_ranges(r1, r2):
+def union_ranges(r1, r2):
+    """If two ranges can be combined to one, return it, else None."""
     if r1.stop < r2.start or r2.stop < r1.start:
         return None     # No overlap
     return range(min(r1.start, r2.start), max(r1.stop, r2.stop))
@@ -41,40 +42,52 @@ def combine_ranges(r1, r2):
     (range(0, 10), range(5, 8), range(0, 10)),
     (range(10, 20), range(5, 15), range(5, 20)),
 ])
-def test_combine_ranges(r1, r2, r3):
-    assert combine_ranges(r1, r2) == r3
+def test_union_ranges(r1, r2, r3):
+    assert union_ranges(r1, r2) == r3
 
-# A range list is a list of non-overlapping ranges.
-def add_range_to_range_list(rset, r):
-    result = [r]
-    for rs in rset:
-        overlapped = combine_ranges(result[0], rs)
-        if overlapped is not None:
-            result[0] = overlapped
-        else:
-            result.append(rs)
-    return result
+
+class Ranges:
+    """A Ranges has a list of non-overlapping ranges."""
+    def __init__(self, *ranges):
+        self.ranges = list(ranges)
+
+    def __eq__(self, other):
+        # ignores order, but we only use it for 1-element ranges in our tests...
+        return self.ranges == other.ranges
+
+    def __add__(self, r):
+        result = Ranges(r)
+        for rs in self.ranges:
+            overlapped = union_ranges(result.ranges[0], rs)
+            if overlapped is not None:
+                result.ranges[0] = overlapped
+            else:
+                result.ranges.append(rs)
+        return result
+
+    def __len__(self):
+        return sum(len(r) for r in self.ranges)
 
 
 def covered_positions(sensor_data, row_num):
-    covered = []
+    covered = Ranges()
     for sx, sy, bx, by in sensor_data:
         radius = abs(sx - bx) + abs(sy - by)
         row_rad = radius - abs(sy - row_num)
         row_covered = range(sx - row_rad, sx + row_rad + 1)
         if row_rad >= 0:
-            covered = add_range_to_range_list(covered, row_covered)
+            covered += row_covered
     return covered
 
 def test_covered_positions():
     data = read_data(SAMPLE)
     covered = covered_positions(data, 10)
-    assert covered == [range(-2, 25)]
+    assert covered == Ranges(range(-2, 25))
 
 def part1(text, row_num):
     data = read_data(text)
     covered = covered_positions(data, row_num)
-    return sum(len(r) for r in covered) - 1
+    return len(covered) - 1
 
 def test_part1():
     assert part1(SAMPLE, 10) == 26
