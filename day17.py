@@ -1,11 +1,10 @@
 # https://adventofcode.com/2022/day/17
 
 import itertools
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 SAMPLE = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>"
-
 WIDTH = 7
 
 @dataclass(frozen=True)
@@ -38,62 +37,72 @@ SHAPES = [
     Shape([Pt(0, 0), Pt(1, 0), Pt(0, 1), Pt(1, 1)]),
 ]
 
-def height(chamber):
-    return max((pt.y for pt in chamber), default=-1) + 1
+@dataclass
+class Chamber:
+    cells: set[Pt] = field(default_factory=set)
+    heights: list[int] = field(default_factory=lambda: [0] * WIDTH)
+    removed: int = 0
 
-def can_place(chamber, shape):
-    if min(pt.x for pt in shape) < 0:
-        return False
-    if max(pt.x for pt in shape) > WIDTH - 1:
-        return False
-    if min(pt.y for pt in shape) < 0:
-        return False
-    if chamber & shape.pts:
-        return False
-    return True
+    def height(self):
+        return max((pt.y for pt in self.cells), default=-1) + 1
 
-def draw_chamber(chamber):
-    print(chamber)
-    for y in range(height(chamber), -1, -1):
-        print("|", end="")
-        for x in range(WIDTH):
-            print("#" if Pt(x, y) in chamber else ".", end="")
-        print("|")
-    print("+-------+\n")
+    def can_place(self, shape):
+        if min(pt.x for pt in shape) < 0:
+            return False
+        if max(pt.x for pt in shape) > WIDTH - 1:
+            return False
+        if min(pt.y for pt in shape) < 0:
+            return False
+        if self.cells & shape.pts:
+            return False
+        return True
+
+    def place(self, shape):
+        self.cells |= shape.pts
+        for pt in shape:
+            if pt.y >= self.heights[pt.x]:
+                self.heights[pt.x] = pt.y + 1
+        self.removed = min(self.heights)
+        self.cells = {pt for pt in self.cells if pt.y >= self.removed - 1}
+
+    def draw(self):
+        for y in range(self.height(), self.removed-2, -1):
+            print(f"{y:5} |", end="")
+            for x in range(WIDTH):
+                print("#" if Pt(x, y) in self.cells else ".", end="")
+            print("|")
+        print()
 
 def drop_rocks(jet_text):
-    chamber = set()
+    chamber = Chamber()
     jets = itertools.cycle(jet_text)
     shapes = itertools.cycle(SHAPES)
 
-    for i in range(2022):
-        pos = Pt(x=2, y=height(chamber) + 3)
+    for i in range(30):
+        pos = Pt(x=2, y=chamber.height() + 3)
         shape = next(shapes) @ pos
-        #print(f"Dropping {i}: {shape}")
         while True:
             # jet push
             jet_push = LEFT if next(jets) == "<" else RIGHT
             pushed_shape = shape @ jet_push
-            if can_place(chamber, pushed_shape):
+            if chamber.can_place(pushed_shape):
                 shape = pushed_shape
-                #print(f"Pushed {jet_push} to {shape}")
 
             # down
             down_shape = shape @ DOWN
-            if can_place(chamber, down_shape):
-                #print(f"Dropped to {down_shape}")
+            if chamber.can_place(down_shape):
                 shape = down_shape
             else:
-                #print(f"Placing {shape}")
-                chamber |= shape.pts
-                #draw_chamber(chamber)
+                chamber.place(shape)
+                chamber.draw()
                 break
 
     return chamber
 
 def part1(text):
     chamber = drop_rocks(text)
-    return height(chamber)
+    chamber.draw()
+    return chamber.height()
 
 def test_part1():
     assert part1(SAMPLE) == 3068
