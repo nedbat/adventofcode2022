@@ -1,5 +1,6 @@
 # https://adventofcode.com/2022/day/16
 
+import itertools
 import re
 from dataclasses import dataclass, field
 
@@ -52,16 +53,6 @@ class State:
     def moves(self, cave):
         pressure_incr = sum(cave.valves[v] for v in self.opened)
 
-        # if the current valve is closed, open it, if it's more than zero.
-        if self.valve not in self.opened and self.valve in cave.valves:
-            yield State(
-                self.valve,
-                self.opened | {self.valve},
-                self.pressure + pressure_incr,
-                self.minutes + 1,
-                #self.trail + f"open {self.valve}; ",
-            )
-
         # check if all the valves are opened.
         if len(cave.valves) == len(self.opened):
             # If all the valves are opened, sit tight and wait.
@@ -73,6 +64,16 @@ class State:
                 #self.trail + f"wait {30 - self.minutes}",
             )
         else:
+            # if the current valve is closed, open it, if it's more than zero.
+            if self.valve not in self.opened and self.valve in cave.valves:
+                yield State(
+                    self.valve,
+                    self.opened | {self.valve},
+                    self.pressure + pressure_incr,
+                    self.minutes + 1,
+                    #self.trail + f"open {self.valve}; ",
+                )
+
             # move to all adjacent valves.
             for next_valve in cave.pipes[self.valve]:
                 yield State(
@@ -84,13 +85,13 @@ class State:
                 )
 
 
-def search(cave):
-    state0 = State()
+def search(cave, state0):
     states = [state0]
     visited = {state0: state0}
     best = 0
+    #best_trail = None
     while True:
-        #print(len(states),len(visited))
+        print(f"{len(states):12,d};  {len(visited):12,d}")
         next_states = []
         for s in states:
             for ns in s.moves(cave):
@@ -107,16 +108,80 @@ def search(cave):
                     if ns.pressure > best:
                         #print(f"{ns.pressure}: {ns.trail}")
                         best = ns.pressure
+                        #best_trail = ns.trail
                 else:
                     if new_state:
                         next_states.append(ns)
         if not next_states:
+            #print(best_trail)
             return best
         states = next_states
 
-def test_search():
-    assert search(Cave.from_text(SAMPLE)) == 1651
+def part1(text):
+    return search(Cave.from_text(text), State())
+
+def test_part1():
+    assert part1(SAMPLE) == 1651
 
 if __name__ == "__main__":
-    cave = Cave.from_text(open("day16_input.txt").read())
-    print(f"Part 1: {search(cave)}")
+    text = open("day16_input.txt").read()
+    print(f"Part 1: {part1(text)}")
+
+
+@dataclass(frozen=True)
+class State2:
+    you: str = "AA"
+    elephant: str = "AA"
+    opened: frozenset = frozenset()
+    pressure: int = field(default=0, compare=False)
+    minutes: int = field(default=4, compare=False)
+
+    def steps(self, cave, valve):
+        """Yield pairs (new position, valve to open)"""
+        if valve not in self.opened and valve in cave.valves:
+            yield valve, valve
+        for next_valve in cave.pipes[valve]:
+            yield next_valve, None
+
+    def moves(self, cave):
+        pressure_incr = sum(cave.valves[v] for v in self.opened)
+
+        if len(cave.valves) == len(self.opened):
+            # If all the valves are opened, sit tight and wait.
+            yield State2(
+                self.you,
+                self.elephant,
+                self.opened,
+                self.pressure + (30 - self.minutes) * pressure_incr,
+                30,
+            )
+        else:
+            you_moves = list(self.steps(cave, self.you))
+            ele_moves = list(self.steps(cave, self.elephant))
+
+            for (new_you, you_open), (new_ele, ele_open) in itertools.product(you_moves, ele_moves):
+                # if you_open == ele_open:
+                #     continue
+                new_opened = frozenset(self.opened)
+                if you_open is not None:
+                    new_opened |= {you_open}
+                if ele_open is not None:
+                    new_opened |= {ele_open}
+
+                yield State2(
+                    new_you,
+                    new_ele,
+                    new_opened,
+                    self.pressure + pressure_incr,
+                    self.minutes + 1,
+                )
+
+def part2(text):
+    return search(Cave.from_text(text), State2())
+
+def test_part2():
+    assert part2(SAMPLE) == 1707
+
+if __name__ == "__main__":
+    text = open("day16_input.txt").read()
+    print(f"Part 2: {part2(text)}")
