@@ -1,6 +1,7 @@
 # https://adventofcode.com/2022/day/23
 
 import collections
+import itertools
 
 
 SAMPLE = """\
@@ -106,14 +107,8 @@ def do_round(elves, nround):
 
 def do_rounds(elves, nrounds):
     for nround in range(nrounds):
-        # print(nround)
-        # draw_elves(elves)
-        # print("-" * 40)
         elves = do_round(elves, nround)
     return elves
-
-# elves = read_elves(SAMPLE2)
-# do_rounds(elves, 10)
 
 def part1(text):
     elves = read_elves(text)
@@ -126,3 +121,21 @@ def test_part1():
 if __name__ == "__main__":
     text = open("day23_input.txt").read()
     print(f"Part 1: {part1(text)}")
+
+def do_rounds_until_stable(elves):
+    for nround in itertools.count():
+        next_elves = do_round(elves, nround)
+        if next_elves == elves:
+            return nround + 1
+        elves = next_elves
+
+def part2(text):
+    elves = read_elves(text)
+    return do_rounds_until_stable(elves)
+
+def test_part2():
+    assert part2(SAMPLE) == 20
+
+if __name__ == "__main__":
+    text = open("day23_input.txt").read()
+    print(f"Part 2: {part2(text)}")
